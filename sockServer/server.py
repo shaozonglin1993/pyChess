@@ -1,13 +1,13 @@
 
-from tkinter import *
-import socket               # 导入 socket 模块
-import asyncio
-import time
-import sys
-import threading
-import json, types,string
-from struct import *
-from ctypes import *
+from tkinter import * #python标准Tk Gui工具包接口
+import socket  #网络通信
+import asyncio #异步IO
+import time #格式化日期和时间
+import sys  #内置模块，提供与python解释器和运行环境相关的功能
+import threading #多线程
+import json, types,string #types--包含常见的数据类型 json--解析json格式 string--字符串操作
+from struct import * #支持python与C结构体之间转换
+from ctypes import * #外部库，提供与C兼容的数据类型，并允许调用DLL或共享库中的函数
 
 '''
 #加载库文件
@@ -36,22 +36,26 @@ print(func(byref(Ctest(n0 = b[0],n1 = b[1],n2 = b[2],x=100, y=200))))
 
 '''
 
+#绘制椭圆形棋子图形
 def circle(canvas, x, y, r, color=None):
     id = canvas.create_oval(x-r, y-r, x+r, y+r, fill = color)
     return id
 
 
-class 	Cpixel:
+#像素点
+class Cpixel:
     def __init__(self, m, n):
         self.x = m
         self.y = n
 
+#棋子坐标
 class Cpoint:
     def __init__(self, m, n):
         self.x = m
         self.y = n
 
 
+#棋子：坐标、角色、颜色、状态（存在、选中）
 class Cqizi:
     def __init__(self, point = None, color = "red", str = "", alive = 1):
         self.point = point
@@ -81,7 +85,7 @@ class Cqizi:
         master.create_text(start.x + self.point.x * gap, start.y + self.point.y * gap, text=self.str)
 
 
-
+#绘制棋盘
 class Cqipan:
     #start_piexl为棋盘开始的像素点， gap为棋盘相邻交叉点距离
     def __init__(self, start_piexl, gap, master, sock, color):
@@ -195,25 +199,27 @@ class Cqipan:
 
         r = gap*3/8
 
+        #超出棋盘外，无效
         if (pixel.x < (self.m_start_piexl.x - r) or pixel.x > (end_piexl.x + r) or pixel.y < (self.m_start_piexl.y - r) or pixel.y > (end_piexl.y + r)):
             return None
 
         pixel.x = pixel.x - self.m_start_piexl.x
         pixel.y = pixel.y - self.m_start_piexl.y
 
+        #棋盘内有效
         for item in self.pointlist:
             if pixel.x <= (item.x*gap + r) and pixel.x >= (item.x*gap - r) and pixel.y <= (item.y*gap + r) and pixel.y > (item.y*gap - r):
                 return item
         return None
 
 
-    #判断两点是否在一条直线上
+    #判断两点是否在一条直线上，x相同y不同，或者y相同x不同，说明在一条线上面
     def on_same_line(self, point1, point2):
         if (point1.x == point2.x and point1.y != point2.y) or (point1.y == point2.y and point1.x != point2.x):
             return 1
         else:
             return 0
-    #遍历棋子列表，查看是否有棋子位于两点之间的线上
+    #遍历棋子列表，查看是否有棋子位于两点之间的线上，--炮
     def no_qizi_on_line(self, point1, point2):
         if self.on_same_line(point1, point2) == 0:
             return 0
@@ -231,7 +237,7 @@ class Cqipan:
                 else:
                     return 0
         return 1
-    #判断两点是否为日子形
+    #判断两点是否为日子形，--马
     def on_rizi_line(self, point1, point2):
         # X坐标差1，y坐标差2
         if (abs(point1.x - point2.x) == 1 and abs(point1.y-point2.y) == 2):
@@ -240,18 +246,18 @@ class Cqipan:
         if (abs(point1.x - point2.x) == 2 and abs(point1.y - point2.y) == 1):
             return 1
         return 0;
-    #遍历棋子列表，查看是否有棋子位于日子别腿点
+    #遍历棋子列表，查看是否有棋子位于日字别腿点，--马
     def no_qizi_on_rizi(self, point1, point2):
         if self.on_rizi_line(point1, point2) == 0:
             return 0
         #马可以走8个方向，每个方向对应一个别子坐标
         dic = {(1,-2):Cpoint(point1.x, point1.y-1),
                (2,-1):Cpoint(point1.x+1, point1.y),
-               (2,1): Cpoint(point1.x + 1, point1.y),
+               (2,1): Cpoint(point1.x+1, point1.y),
                (1,2): Cpoint(point1.x, point1.y+1),
                (-1,2):Cpoint(point1.x, point1.y+1),
-               (-2,1):Cpoint(point1.x - 1, point1.y),
-               (-2,-1):Cpoint(point1.x - 1, point1.y),
+               (-2,1):Cpoint(point1.x-1, point1.y),
+               (-2,-1):Cpoint(point1.x-1, point1.y),
                (-1,-2):Cpoint(point1.x, point1.y-1)
                }
         x_difference = point2.x - point1.x
@@ -266,18 +272,18 @@ class Cqipan:
         print("no bie point")
         return 1
 
-    #判断两点是否为田字形
+    #判断两点是否为田字形，--相
     def on_tianzi_line(self, point1, point2):
         # X坐标差2，y坐标差2
         if (abs(point1.x - point2.x) == 2 and abs(point1.y-point2.y) == 2):
             return 1
 
         return 0;
-    #遍历棋子列表，查看是否有棋子位于田字路径上
+    #遍历棋子列表，查看是否有棋子位于田字路径上，--相
     def no_qizi_on_tianzi(self, point1, point2):
         if self.on_tianzi_line(point1, point2) == 0:
             return 0
-        #马可以走4个方向，每个个方向对应一个别子坐标
+        #相可以走4个方向，每个个方向对应一个别子坐标
         dic = {(2,2):Cpoint(point1.x+1, point1.y+1),
                (-2,2):Cpoint(point1.x-1, point1.y+1),
                (2,-2): Cpoint(point1.x + 1, point1.y-1),
@@ -296,7 +302,7 @@ class Cqipan:
         return 1
 
 
-    # 判断两点是否为口字形 且point2 必须不能出宫
+    # 判断两点是否为口字形 且point2 必须不能出宫，--士
     def on_kouzi_line(self, point1, point2):
 
         if self.m_current_player == 'red':
@@ -311,7 +317,7 @@ class Cqipan:
 
         return 0
 
-    # 判断两点是否为一字形 且point2 必须不能出宫
+    # 判断两点是否为一字形 且point2 必须不能出宫，--将
     def on_yizi_line(self, point1, point2):
 
         if self.m_current_player == 'red':
@@ -326,7 +332,7 @@ class Cqipan:
 
         return 0
 
-    # 判断两点是否为一字形 且point2 只能向前
+    # 判断两点是否为一字形 且point2 只能向前，--兵
     def on_bingzi_line(self, point1, point2):
         if self.m_current_player == 'red':
             if point2.y < point1.y or (point1.y < 5 and point1.x != point2.x):
@@ -338,6 +344,7 @@ class Cqipan:
         if (abs(point1.x - point2.x) == 1 and point1.y == point2.y) or (point1.x == point2.x and abs(point1.y - point2.y) == 1):
             return 1
 
+    # 判断两点间是否有且只有一颗棋子，--炮
     def one_qizi_on_line(self, point1, point2):
         qizi_count = 0
         if self.on_same_line(point1, point2) == 0:
@@ -362,6 +369,7 @@ class Cqipan:
 
         return 0
 
+    # 查询某坐标位置的棋子
     def qizi_on_point(self, point):
         for item in self.qizilist:
             if item.is_alive():
@@ -369,6 +377,7 @@ class Cqipan:
                     return item
         return None
 
+    # 游戏开始
     def go(self, qizi, point):
         #point是否位于棋盘线交叉点，是则返回交叉点，否则返回NONE
         focus_point = point
@@ -471,6 +480,7 @@ class Cqipan:
 
         return 0
 
+    # 输赢判断
     def check_win(self):
         red = 0;
         green = 0;
@@ -486,7 +496,7 @@ class Cqipan:
             self.m_master.create_text(self.m_start_piexl.x + self.m_gap * 4, self.m_start_piexl.y + self.m_gap * 10, text="红方赢")
             self.m_over = 1
 
-
+    # 绘制
     def paint(self):
         start = self.m_start_piexl
         gap = self.m_gap
@@ -502,6 +512,7 @@ class Cqipan:
             if item.is_alive():
                 item.paint(self.m_master, start, gap)
 
+    # 发送所有棋子的信息
     def send_qizi_info(self):
         test_count = 0
         for item in self.qizilist:
@@ -509,23 +520,26 @@ class Cqipan:
             jmsg = json.dumps(msg)
             jmsg_len  = len(jmsg)
             pack_msg = pack("l", jmsg_len)
+            #print(unpack("l", pack_msg))
             self.sock.send(pack_msg)
             self.sock.send(bytes(jmsg, 'utf-8'))
             print("send:", item.str, " x:", item.point.x, " y:", item.point.y)
 
-
+    #
     def get_point(self, event, piexl = 0, witch = 'red'):
         if self.m_over == 1  or self.m_current_player != witch:
             return None
         x, y = event.x, event.y
+        #对方
         if piexl == 0:
             #获取点对应的棋盘交叉点
             focus_point = self.pixel_to_point(Cpixel(x, y))
+        #我方
         else:
             focus_point = Cpoint(x, y)
 
         if focus_point != None:
-            #查找改点是否落在棋子上
+            #查找该点是否落在棋子上
             qizi = self.qizi_on_point(focus_point)
             #如果还没有选定棋子
             if self.m_choose_qizi == None:
@@ -553,13 +567,14 @@ class Cqipan:
         self.send_qizi_info()
         print(x, y)
 
+    # 切换玩家
     def player_switch(self):
         if self.m_current_player == 'red':
             self.m_current_player = 'green'
         else:
             self.m_current_player = 'red'
 
-
+# 网络接收
 def net_rec(i, sock):
     while True:
         data = sock.recv(2)
@@ -568,7 +583,7 @@ def net_rec(i, sock):
             continue
         g_qipan[i].get_point(Cpoint(data[0], data[1]), piexl = 1, witch = 'green')
 
-
+# 任务入口
 def task_func(c, addr, i):
     global g_qipan
 
@@ -600,8 +615,11 @@ def task_func(c, addr, i):
     return 'the result'
 
 
+# 
 s = socket.socket()  # 创建 socket 对象
-host = socket.gethostname()  # 获取本地主机名
+#host = socket.gethostname()  # 获取本地主机名
+
+host = "127.0.0.1"  # 获取本地主机名
 port = 12345  # 设置端口
 s.bind((host, port))  # 绑定端口
 print(host)

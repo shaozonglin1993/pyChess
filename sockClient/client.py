@@ -19,7 +19,7 @@ def circle(canvas, x, y, r, color=None):
 
 
 
-class 	Cpixel:
+class Cpixel:
     def __init__(self, m, n):
         self.x = m
         self.y = n
@@ -228,10 +228,10 @@ def net_adapter(s, qipan):
 
     while True:
         for item in qipan.qizilist:
-            data_len = unpack("l", net_recv(s, 4))
+            data_len = unpack("l", net_recv(s, 8))
             print('data_len:', data_len)
             data = net_recv(s, data_len[0])
-            qizi_info = json.loads(data)
+            qizi_info = json.loads(data.decode('utf-8'))
 
             item.str = qizi_info[0]['name']
             item.color = qizi_info[0]['color']
@@ -244,9 +244,10 @@ def net_adapter(s, qipan):
 
 
 
-s = socket.socket()         # 创建 socket 对象
-host = socket.gethostname() # 获取本地主机名
-port = 12345                # 设置端口号
+s = socket.socket()          # 创建 socket 对象
+#host = socket.gethostname() # 获取本地主机名
+host = "127.0.0.1"           # 获取本地主机名
+port = 12345                 # 设置端口号
 
 s.connect((host, port))
 print (str(s.recv(1024),'utf-8'))

@@ -245,7 +245,7 @@ class Cqipan:
         # X坐标差2，y坐标差1
         if (abs(point1.x - point2.x) == 2 and abs(point1.y - point2.y) == 1):
             return 1
-        return 0;
+        return 0
     #遍历棋子列表，查看是否有棋子位于日字别腿点，--马
     def no_qizi_on_rizi(self, point1, point2):
         if self.on_rizi_line(point1, point2) == 0:
@@ -278,7 +278,7 @@ class Cqipan:
         if (abs(point1.x - point2.x) == 2 and abs(point1.y-point2.y) == 2):
             return 1
 
-        return 0;
+        return 0
     #遍历棋子列表，查看是否有棋子位于田字路径上，--相
     def no_qizi_on_tianzi(self, point1, point2):
         if self.on_tianzi_line(point1, point2) == 0:
@@ -482,8 +482,8 @@ class Cqipan:
 
     # 输赢判断
     def check_win(self):
-        red = 0;
-        green = 0;
+        red = 0
+        green = 0
         for item in self.qizilist:
             if item.str == "帅" and item.is_alive():
                 red = 1

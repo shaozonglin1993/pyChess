@@ -621,6 +621,8 @@ s = socket.socket()  # 创建 socket 对象
 
 host = "127.0.0.1"  # 获取本地主机名
 port = 12345  # 设置端口
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 s.bind((host, port))  # 绑定端口
 print(host)
 

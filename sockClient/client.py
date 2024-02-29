@@ -248,7 +248,8 @@ s = socket.socket()          # 创建 socket 对象
 #host = socket.gethostname() # 获取本地主机名
 host = "127.0.0.1"           # 获取本地主机名
 port = 12345                 # 设置端口号
-
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 s.connect((host, port))
 print (str(s.recv(1024),'utf-8'))
 
